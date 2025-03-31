@@ -29,7 +29,7 @@ let package = Package(
             dependencies: ["base45-swift"]),
         .testTarget(
             name: "pixelpassTests",
-            dependencies: ["pixelpass"]
+            dependencies: ["pixelpass","base45-swift"]
         ),
     ]
 )
