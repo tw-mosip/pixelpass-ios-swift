@@ -15,7 +15,7 @@
       "location" : "https://github.com/abhip2565/SwiftCBOR",
       "state" : {
         "branch" : "long-cbor-decode-crash-fix",
-        "revision" : "ecb490830e395df54eb06951e58a75d3d7443cf1"
+        "revision" : "44f0220cd834d07892a9a9ebe4cb543e66e40a0a"
       }
     },
     {
