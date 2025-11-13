@@ -3,17 +3,25 @@ import SwiftCBOR
 import OSLog
 
 extension CBOR {
-    func converToJsonCompatibleFormat() -> Any {
+    func converToJsonCompatibleFormat(depth:Int = 0, maxDepth: Int = 200) -> Any {
+        guard depth < maxDepth else {
+                    print("Maximum recursion depth reached in CBOR to JSON conversion")
+                    return NSNull()
+                }
         switch self {
         case .array(let array):
+            guard array.count < 10_000 else {
+                print("Maximum recursion depth reached in CBOR to JSON conversion on array")
+                return NSNull()
+            }
             return array.map {
-                $0.converToJsonCompatibleFormat()
+                $0.converToJsonCompatibleFormat(depth: depth+1)
             }
         case .map(let dict):
             var result = [String: Any]()
             for (key, value) in dict {
-                let keyString : String = "\(key.converToJsonCompatibleFormat())"
-                result[keyString] = value.converToJsonCompatibleFormat()
+                guard case .utf8String(let keyString) = key else { continue }
+                result[keyString] = value.converToJsonCompatibleFormat(depth: depth+1)
                 
             }
             return result
@@ -25,7 +33,7 @@ extension CBOR {
                 if(decodedCBORIn == nil){
                     return String(decoding: data, as: UTF8.self)
                 }
-                return decodedCBORIn!.converToJsonCompatibleFormat()
+                return decodedCBORIn!.converToJsonCompatibleFormat(depth: depth+1)
             } catch {
                 return String(decoding: data, as: UTF8.self)
             }
@@ -49,7 +57,7 @@ extension CBOR {
                     return "-1 - \(negativeInt)"
                 }
         case .tagged(_, let taggedValue):
-            return taggedValue.converToJsonCompatibleFormat()
+            return taggedValue.converToJsonCompatibleFormat(depth: depth+1)
         //simple type values assigned - https://datatracker.ietf.org/doc/html/rfc7049#section-2.3
         case .simple(let simpleValue):
             switch simpleValue {
@@ -72,6 +80,7 @@ extension CBOR {
         case let .half(half):
             return Float(half)
         default:
+            print("Its default case")
             os_log("Unhandled or non-JSON-compatible CBOR type encountered: %{PUBLIC}@", log: OSLog.default, type: .error, String(describing: self))
             return NSNull()
         }
